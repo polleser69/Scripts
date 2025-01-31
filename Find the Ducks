@@ -1,0 +1,40 @@
+while wait(4.5) do
+-- Make sure the script is in a LocalScript (for testing as player)
+local player = game.Players.LocalPlayer
+local folder = game.Workspace:WaitForChild("Ducks") -- Reference to workspace.Objects
+
+-- Function to teleport the player to a random object in the folder
+local function teleportToRandomObject()
+    -- Get all the objects in the "Objects" folder
+    local objects = {}
+    for _, object in pairs(folder:GetChildren()) do
+        -- Only include parts (or models that contain a PrimaryPart)
+        if object:IsA("BasePart") then
+            table.insert(objects, object)
+        elseif object:IsA("Model") and object.PrimaryPart then
+            table.insert(objects, object.PrimaryPart)
+        end
+    end
+
+    if #objects > 0 then
+        -- Pick a random object
+        local targetObject = objects[math.random(1, #objects)]
+        -- Teleport the player to the position of the object
+        player.Character:SetPrimaryPartCFrame(targetObject.CFrame)
+    else
+        warn("No parts found in the 'Objects' folder!")
+    end
+end
+
+-- Call the function to teleport the player (for testing)
+teleportToRandomObject()
+
+local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
+
+Notification:Notify(
+    {Title = "Made by Polleser", Description = "https://discord.gg/dmBzVaRrD3"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 5, Type = "option"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84), Callback = function(State) print(tostring(State)) end}
+)
+end
