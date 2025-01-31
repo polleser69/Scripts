@@ -1,33 +1,116 @@
-while wait(4.5) do
--- Make sure the script is in a LocalScript (for testing as player)
 local player = game.Players.LocalPlayer
-local folder = game.Workspace:WaitForChild("Ducks") -- Reference to workspace.Objects
+local folder = game.Workspace:WaitForChild("Ducks") -- Folder containing teleport targets
+local currentIndex = 1
+local teleporting = false -- Tracks whether the loop is active
 
--- Function to teleport the player to a random object in the folder
-local function teleportToRandomObject()
-    -- Get all the objects in the "Objects" folder
+-- Function to get all valid teleport objects
+local function getTeleportObjects()
     local objects = {}
     for _, object in pairs(folder:GetChildren()) do
-        -- Only include parts (or models that contain a PrimaryPart)
         if object:IsA("BasePart") then
             table.insert(objects, object)
         elseif object:IsA("Model") and object.PrimaryPart then
             table.insert(objects, object.PrimaryPart)
         end
     end
+    return objects
+end
 
-    if #objects > 0 then
-        -- Pick a random object
-        local targetObject = objects[math.random(1, #objects)]
-        -- Teleport the player to the position of the object
+-- Function to teleport the player to objects in order
+local function teleportToNextObject()
+    local objects = getTeleportObjects()
+
+    if #objects == 0 then
+        warn("No parts found in the 'Monkeys' folder!")
+        return
+    end
+
+    -- Loop index logic
+    currentIndex = (currentIndex - 1) % #objects + 1
+    local targetObject = objects[currentIndex]
+
+    if player.Character and player.Character.PrimaryPart then
         player.Character:SetPrimaryPartCFrame(targetObject.CFrame)
     else
-        warn("No parts found in the 'Objects' folder!")
+        warn("Player character or PrimaryPart not found!")
     end
 end
 
--- Call the function to teleport the player (for testing)
-teleportToRandomObject()
+-- Function to create the GUI dynamically
+local function createGUI()
+    -- Create ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MadeByPolleser"
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+
+    -- Create Start Button
+    local startButton = Instance.new("TextButton")
+    startButton.Name = "StartButton"
+    startButton.Text = "Start"
+    startButton.Size = UDim2.new(0.15, 0, 0.05, 0) -- Smaller size
+    startButton.Position = UDim2.new(0.4, 0, 0.4, 0)
+    startButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green color
+    startButton.TextScaled = true
+    startButton.Parent = screenGui
+
+    -- Create Stop Button
+    local stopButton = Instance.new("TextButton")
+    stopButton.Name = "StopButton"
+    stopButton.Text = "Stop"
+    stopButton.Size = UDim2.new(0.15, 0, 0.05, 0) -- Smaller size
+    stopButton.Position = UDim2.new(0.4, 0, 0.5, 0)
+    stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red color
+    stopButton.TextScaled = true
+    stopButton.Parent = screenGui
+
+    -- Functionality for moving the GUI on mobile devices
+    local function makeDraggable(guiElement)
+        local dragging, dragInput, startPos
+
+        guiElement.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                startPos = guiElement.Position
+
+                dragInput = input.Changed:Connect(function()
+                    if dragging then
+                        local delta = input.Position - input.StartPosition -- Calculate movement delta
+                        guiElement.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                    end
+                end)
+            end
+        end)
+
+        guiElement.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+                if dragInput then dragInput:Disconnect() end -- Stop tracking when touch ends
+            end
+        end)
+    end
+
+    makeDraggable(screenGui) -- Make the entire GUI draggable
+
+    -- Start Button Functionality
+    startButton.MouseButton1Click:Connect(function()
+        if not teleporting then
+            teleporting = true
+            while teleporting do
+                teleportToNextObject()
+                wait(4.5) -- Adjust delay as needed
+            end
+        end
+    end)
+
+    -- Stop Button Functionality
+    stopButton.MouseButton1Click:Connect(function()
+        teleporting = false -- Stop the loop when this button is clicked
+    end)
+end
+
+-- Call the function to create the GUI when the script runs
+createGUI()
 
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
