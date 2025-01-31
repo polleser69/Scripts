@@ -1,3 +1,4 @@
+while wait() do
 -- Make sure the script is in a LocalScript (for testing as player)
 local player = game.Players.LocalPlayer
 local folder = game.Workspace:WaitForChild("Objects") -- Reference to workspace.Objects
