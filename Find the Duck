@@ -1,9 +1,17 @@
-local player = game.Players.LocalPlayer
-local folder = game.Workspace:WaitForChild("Objects") -- Folder containing teleport targets
-local currentIndex = 1
-local teleporting = false -- Tracks whether the loop is active
+local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
+local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
 
--- Function to get all valid teleport objects
+Notification:Notify(
+    {Title = "Made by Polleser", Description = "https://discord.gg/dmBzVaRrD3"},
+    {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "option"},
+    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84), Callback = function(State) print(tostring(State)) end}
+)
+
+local player = game.Players.LocalPlayer
+local folder = game.Workspace:WaitForChild("Objects")
+local currentIndex = 1
+local teleporting = false
+
 local function getTeleportObjects()
     local objects = {}
     for _, object in pairs(folder:GetChildren()) do
@@ -16,7 +24,6 @@ local function getTeleportObjects()
     return objects
 end
 
--- Function to teleport the player to objects in order
 local function teleportToNextObject()
     local objects = getTeleportObjects()
 
@@ -25,7 +32,6 @@ local function teleportToNextObject()
         return
     end
 
-    -- Loop index logic
     currentIndex = (currentIndex - 1) % #objects + 1
     local targetObject = objects[currentIndex]
 
@@ -36,88 +42,42 @@ local function teleportToNextObject()
     end
 end
 
--- Function to create the GUI dynamically
 local function createGUI()
-    -- Create ScreenGui
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MadeByPolleser"
     screenGui.Parent = player:WaitForChild("PlayerGui")
 
-    -- Create Start Button
     local startButton = Instance.new("TextButton")
     startButton.Name = "StartButton"
     startButton.Text = "Start"
-    startButton.Size = UDim2.new(0.15, 0, 0.05, 0) -- Smaller size
+    startButton.Size = UDim2.new(0.1, 0, 0.05, 0)
     startButton.Position = UDim2.new(0.4, 0, 0.4, 0)
-    startButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green color
+    startButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     startButton.TextScaled = true
     startButton.Parent = screenGui
 
-    -- Create Stop Button
     local stopButton = Instance.new("TextButton")
     stopButton.Name = "StopButton"
     stopButton.Text = "Stop"
-    stopButton.Size = UDim2.new(0.15, 0, 0.05, 0) -- Smaller size
+    stopButton.Size = UDim2.new(0.1, 0, 0.05, 0)
     stopButton.Position = UDim2.new(0.4, 0, 0.5, 0)
-    stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red color
+    stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     stopButton.TextScaled = true
     stopButton.Parent = screenGui
 
-    -- Functionality for moving the GUI on mobile devices
-    local function makeDraggable(guiElement)
-        local dragging, dragInput, startPos
-
-        guiElement.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                startPos = guiElement.Position
-
-                dragInput = input.Changed:Connect(function()
-                    if dragging then
-                        local delta = input.Position - input.StartPosition -- Calculate movement delta
-                        guiElement.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                    end
-                end)
-            end
-        end)
-
-        guiElement.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                dragging = false
-                if dragInput then dragInput:Disconnect() end -- Stop tracking when touch ends
-            end
-        end)
-    end
-
-    makeDraggable(screenGui) -- Make the entire GUI draggable
-
-    -- Start Button Functionality
     startButton.MouseButton1Click:Connect(function()
         if not teleporting then
             teleporting = true
             while teleporting do
                 teleportToNextObject()
-                wait(4.5) -- Adjust delay as needed
+                wait(4.5)
             end
         end
     end)
 
-    -- Stop Button Functionality
     stopButton.MouseButton1Click:Connect(function()
-        teleporting = false -- Stop the loop when this button is clicked
+        teleporting = false
     end)
 end
 
--- Call the function to create the GUI when the script runs
 createGUI()
-
-local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-
-Notification:Notify(
-    {Title = "Made by Polleser", Description = "https://discord.gg/dmBzVaRrD3"},
-    {OutlineColor = Color3.fromRGB(80, 80, 80),Time = 5, Type = "option"},
-    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84), Callback = function(State) print(tostring(State)) end}
-)
-end
