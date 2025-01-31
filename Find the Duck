@@ -8,9 +8,18 @@ Notification:Notify(
 )
 
 local player = game.Players.LocalPlayer
-local folder = game.Workspace:WaitForChild("Duck")
+local folder = game.Workspace:FindFirstChild("Objects") -- Detects "Objects" in Workspace
+if not folder then
+    Notification:Notify(
+        {Title = "Error", Description = "'Objects' folder not found in Workspace!"},
+        {OutlineColor = Color3.fromRGB(255, 0, 0), Time = 5, Type = "default"}
+    )
+    return
+end
+
 local teleporting = false
 
+-- Function to get all valid teleport objects (pretending "Objects" is "Items")
 local function getTeleportObjects()
     local objects = {}
     for _, object in pairs(folder:GetChildren()) do
@@ -23,16 +32,15 @@ local function getTeleportObjects()
     return objects
 end
 
+-- Function to teleport to a random object in the folder
 local function teleportToRandomObject()
     local objects = getTeleportObjects()
-
     if #objects == 0 then
-        warn("No parts found in the 'Monkeys' folder!")
+        warn("No valid parts found in the 'Items' (Objects) folder!")
         return
     end
 
     local targetObject = objects[math.random(1, #objects)]
-
     if player.Character and player.Character.PrimaryPart then
         player.Character:SetPrimaryPartCFrame(targetObject.CFrame)
     else
@@ -40,34 +48,18 @@ local function teleportToRandomObject()
     end
 end
 
+-- Function to create the GUI dynamically
 local function createGUI()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MadeByPolleser"
-    screenGui.Parent = player:WaitForChild("PlayerGui")
+    screenGui.Parent = game:GetService("CoreGui")
 
-    -- Create a Frame to serve as the box for buttons
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.25, 0, 0.15, 0) -- Size of the box
-    frame.Position = UDim2.new(0.375, 0, 0.4, 0) -- Centered position
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Dark background color
-    frame.BorderSizePixel = 0 -- No border
+    frame.Size = UDim2.new(0.25, 0, 0.15, 0)
+    frame.Position = UDim2.new(0.375, 0, 0.4, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 0
     frame.Parent = screenGui
 
-    -- Make the frame draggable on mobile devices
-    local function makeDraggable(guiElement)
-        local dragging, dragInput, startPos
-
-        guiElement.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                startPos = guiElement.Position
-
-                dragInput = input.Changed:Connect(function()
-                    if dragging then
-                        local delta = input.Position - input.StartPosition 
-                        guiElement.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                    end
-                end)
-            end
-        end)
+    -- Make the frame draggable
+    local UserInputService =
