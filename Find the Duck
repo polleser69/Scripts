@@ -62,4 +62,68 @@ local function createGUI()
     frame.Parent = screenGui
 
     -- Make the frame draggable
-    local UserInputService =
+    local UserInputService = game:GetService("UserInputService")
+    
+    local dragging, dragInput, dragStart, startPos
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position =
+                UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                           startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- Start Button
+    local startButton = Instance.new("TextButton")
+    startButton.Name = "StartButton"
+    startButton.Text = "Start"
+    startButton.Size = UDim2.new(0.4, 0, 0.4, 0)
+    startButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+    startButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    startButton.TextScaled = true
+    startButton.Parent = frame
+
+    -- Stop Button
+    local stopButton = Instance.new("TextButton")
+    stopButton.Name = "StopButton"
+    stopButton.Text = "Stop"
+    stopButton.Size = UDim2.new(0.4, 0, 0.4, 0)
+    stopButton.Position = UDim2.new(0.55, 0, 0.3, 0)
+    stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    stopButton.TextScaled = true
+    stopButton.Parent = frame
+
+   -- Start Button Functionality 
+   startButton.MouseButton1Click:Connect(function()
+        if not teleporting then
+            teleporting = true 
+            while teleporting do 
+                teleportToRandomObject() 
+                wait(4.5) 
+            end 
+        end 
+   end)
+
+   -- Stop Button Functionality 
+   stopButton.MouseButton1Click:Connect(function() 
+       teleporting = false 
+   end) 
+end
+
+createGUI()
