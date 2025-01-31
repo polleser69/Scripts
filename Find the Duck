@@ -1,30 +1,46 @@
-local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
-local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
-
--- Notification with Copy Functionality
-local descriptionText = "https://discord.gg/dmBzVaRrD3"
-Notification:Notify(
-    {Title = "Made by Polleser", Description = descriptionText},
-    {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 5, Type = "option"},
-    {Image = "http://www.roblox.com/asset/?id=6023426923", ImageColor = Color3.fromRGB(255, 84, 84), Callback = function()
-        setclipboard(descriptionText)
-        Notification:Notify(
-            {Title = "Copied!", Description = "The link has been copied to your clipboard."},
-            {OutlineColor = Color3.fromRGB(80, 80, 80), Time = 3, Type = "default"}
-        )
-    end}
-)
-
 -- Configuration
 local player = game.Players.LocalPlayer
-local folderName = "Objects"
+local folderName = "Objects" -- Change this to your desired folder name
 local folder = game.Workspace:FindFirstChild(folderName)
 
+-- Simple Notification Function
+local function createNotification(title, description)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NotificationGui"
+    screenGui.Parent = game:GetService("CoreGui")
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.3, 0, 0.15, 0)
+    frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 2
+    frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    frame.Parent = screenGui
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextScaled = true
+    titleLabel.Text = title
+    titleLabel.Parent = frame
+
+    local descriptionLabel = Instance.new("TextLabel")
+    descriptionLabel.Size = UDim2.new(1, 0, 0.6, 0)
+    descriptionLabel.Position = UDim2.new(0, 0, 0.4, 0)
+    descriptionLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    descriptionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    descriptionLabel.TextScaled = true
+    descriptionLabel.TextWrapped = true
+    descriptionLabel.Text = description
+    descriptionLabel.Parent = frame
+
+    wait(5) -- Display the notification for a few seconds
+    screenGui:Destroy() -- Remove the notification after displaying it
+end
+
 if not folder then
-    Notification:Notify(
-        {Title = "Error", Description = "'" .. folderName .. "' folder not found in Workspace!"},
-        {OutlineColor = Color3.fromRGB(255, 0, 0), Time = 5, Type = "default"}
-    )
+    createNotification("Error", "'" .. folderName .. "' folder not found in Workspace!")
     return
 end
 
@@ -47,7 +63,9 @@ end
 local function teleportToRandomObject()
     local objects = getTeleportObjects()
     if #objects == 0 then return end
+
     local targetObject = objects[math.random(1, #objects)]
+    
     if player.Character and player.Character.PrimaryPart then
         player.Character:SetPrimaryPartCFrame(targetObject.CFrame)
     end
@@ -56,50 +74,37 @@ end
 -- Create GUI with Minimize Button
 local function createGUI()
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "MadeByPolleser"
+    screenGui.Name = "ExecutorFriendlyGUI"
     screenGui.Parent = game:GetService("CoreGui")
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.2, 0, 0.15, 0)
-    frame.Position = UDim2.new(0.4, 0, 0.4, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.Size = UDim2.new(0.25, 0, 0.2, 0)
+    frame.Position = UDim2.new(0.375, 0, 0.4, 0) -- Centered on the screen
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     frame.BorderSizePixel = 2
     frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
     frame.Parent = screenGui
 
-    local UserInputService = game:GetService("UserInputService")
-    
-    local dragging, dragStart, startPos
+   -- Draggable GUI Logic
+   local dragging, dragStartPosition
 
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
+   frame.InputBegan:Connect(function(input)
+       if input.UserInputType == Enum.UserInputType.MouseButton1 then
+           dragging = true
+           dragStartPosition = input.Position - frame.Position.Offset
+       end
+   end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            frame.Position =
-                UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+   frame.InputChanged:Connect(function(input)
+       if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+           local newPosition =
+               UDim2.new(
+                   frame.Position.X.Scale,
+                   input.Position.X - dragStartPosition.X,
+                   frame.Position.Y.Scale,
+                   input.Position.Y - dragStartPosition.Y
+               )
+           frame.Position = newPosition -- Update the position of the GUI dynamically.
+       end)
 
-   -- Minimize Button
-   local minimizeButton = Instance.new("TextButton")
-   minimizeButton.Name = "MinimizeButton"
-   minimizeButton.Text = "+"
-   minimizeButton.Size = UDim2.new(0.15, 0, 0.25, 0)
-   minimizeButton.Position = UDim2.new(0.85, -5, -0.25, -5)
-   minimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-   minimizeButton.TextScaled = true 
-   minimizeButton.Parent = frame
+---
