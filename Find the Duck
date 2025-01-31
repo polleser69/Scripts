@@ -28,6 +28,7 @@ end
 
 -- Call the function to teleport the player (for testing)
 teleportToRandomObject()
+end
 
 local NotificationHolder = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Client.Lua"))()
